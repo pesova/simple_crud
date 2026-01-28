@@ -1,6 +1,7 @@
 import jetEnv, { num } from 'jet-env';
 import { isValueOf } from 'jet-validators';
-
+import dotenv from 'dotenv';
+dotenv.config();
 /******************************************************************************
                                  Constants
 ******************************************************************************/

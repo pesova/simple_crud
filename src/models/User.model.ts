@@ -1,72 +1,54 @@
 import { isNonEmptyString, isString, isUnsignedInteger } from 'jet-validators';
-import { parseObject, Schema, testObject } from 'jet-validators/utils';
 
 import { transformIsDate } from '@src/common/utils/validators';
 
 import { Entity } from './common/types';
 
-/******************************************************************************
-                                 Constants
-******************************************************************************/
+import mongoose, { Schema } from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { IUser } from '../interfaces/types';
 
-const GetDefaults = (): IUser => ({
-  id: 0,
-  name: '',
-  email: '',
-  created: new Date(),
+const UserSchema: Schema = new Schema({
+  name: {
+    type: String,
+    required: [true, 'Please add a name'],
+    trim: true,
+    maxlength: [50, 'Name cannot be more than 50 characters']
+  },
+  email: {
+    type: String,
+    required: [true, 'Please add an email'],
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      'Please add a valid email'
+    ]
+  },
+  password: {
+    type: String,
+    required: [true, 'Please add a password'],
+    minlength: [6, 'Password must be at least 6 characters'],
+    select: false
+  }
+}, {
+  timestamps: true
 });
 
-const schema: Schema<IUser> = {
-  id: isUnsignedInteger,
-  name: isString,
-  email: isString,
-  created: transformIsDate,
+// Encrypt password using bcrypt
+// UserSchema.pre('save', async function(next) {
+//   if (!this.isModified('password')) {
+//     next();
+//   }
+  
+//   const salt = await bcrypt.genSalt(10);
+//   this.password = await bcrypt.hash(this.password, salt);
+// });
+
+// Compare password method
+UserSchema.methods.comparePassword = async function(userPassword: string): Promise<boolean> {
+  return await bcrypt.compare(userPassword, this.password);
 };
 
-/******************************************************************************
-                                  Types
-******************************************************************************/
-
-/**
- * @entity users
- */
-export interface IUser extends Entity {
-  name: string;
-  email: string;
-}
-
-/******************************************************************************
-                                  Setup
-******************************************************************************/
-
-// Set the "parseUser" function
-const parseUser = parseObject<IUser>(schema);
-
-// For the APIs make sure the right fields are complete
-const isCompleteUser = testObject<IUser>({
-  ...schema,
-  name: isNonEmptyString,
-  email: isNonEmptyString,
-});
-
-/******************************************************************************
-                                 Functions
-******************************************************************************/
-
-/**
- * New user object.
- */
-function new_(user?: Partial<IUser>): IUser {
-  return parseUser({ ...GetDefaults(), ...user }, (errors) => {
-    throw new Error('Setup new user failed ' + JSON.stringify(errors, null, 2));
-  });
-}
-
-/******************************************************************************
-                                Export default
-******************************************************************************/
-
-export default {
-  new: new_,
-  isComplete: isCompleteUser,
-} as const;
+export default mongoose.model<IUser>('User', UserSchema);
