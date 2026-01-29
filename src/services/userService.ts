@@ -3,12 +3,10 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/User';
 
-import { getEnvVar } from '../../config/env_test';
-
 export class UserService {
   private generateToken(id: string, email: string): string {
-    return jwt.sign({ id, email }, getEnvVar('JWT_SECRET') as string, {
-      expiresIn: getEnvVar('JWT_EXPIRE') as jwt.SignOptions['expiresIn'],
+    return jwt.sign({ id, email }, process.env.JWT_SECRET as string,  {
+      expiresIn: process.env.JWT_EXPIRE as jwt.SignOptions['expiresIn'],
     });
   }
 

@@ -1,12 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import '../config/env';
 import connectDB from '../config/database';
 import authRoutes from './routes/authRouter';
 import itemRoutes from './routes/itemRouter';
 import cors from 'cors';
-import { NodeEnvs } from './common/constants/env';
-import { getEnvVar } from '../config/env_test';
 
 const app = express();
 
@@ -16,13 +15,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (getEnvVar("NODE_ENV") === NodeEnvs.DEV) {
+if (process.env.NODE_ENV === "development") {
   app.use(morgan('dev'));
 }
 
 connectDB();
 
-if (getEnvVar("NODE_ENV") === NodeEnvs.PRODUCTION) {
+if (process.env.NODE_ENV === 'production') {
   if (!process.env.DISABLE_HELMET) {
     app.use(helmet({
       contentSecurityPolicy: false,

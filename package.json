@@ -2,7 +2,7 @@
   "name": "crud-app",
   "version": "0.0.0",
   "scripts": {
-    "build": "tsc --project tsconfig.prod.json",
+    "build": "tsc --project tsconfig.json",
     "clean-install": "rm -rf ./node_modules && rm -r package-lock.json && npm i",
     "dev": "ts-node ./src/main",
     "dev:watch": "nodemon --exec \"npm run dev\" --watch ./src --ext .ts",

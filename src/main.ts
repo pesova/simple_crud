@@ -1,20 +1,19 @@
 import server from './server';
-import { getEnvVar } from 'config/env';
 console.log(' Starting server...');
 
 /******************************************************************************
                                 Constants
 ******************************************************************************/
-
+const port = process.env.PORT ?? 3000;
 const SERVER_START_MESSAGE =
-  'Express server started on port: ' + getEnvVar("PORT").toString();
+  'Express server started on port: ' + port;
 
 /******************************************************************************
                                   Run
 ******************************************************************************/
 
 // Start the server
-server.listen(getEnvVar("PORT"), (err) => {
+server.listen(port, (err) => {
   if (!!err) {
     console.error({err});
     console.error(err.message);
