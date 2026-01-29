@@ -4,8 +4,11 @@ import dotenv from 'dotenv';
 // Try to load .env file for local development
 // This will fail silently in production (Railway)
 try {
-  dotenv.config();
-  console.log('📁 Loaded .env file for local development');
+    console.log(process.env.MONGODB_URI, process.env.JWT_SECRET, process.env.JWT_EXPIRE);
+if (process.env.NODE_ENV == "development") {
+    dotenv.config();
+    console.log('📁 Loaded .env file for local development');
+}
 } catch (error) {
   // Silently continue - Railway provides env vars directly
 }
