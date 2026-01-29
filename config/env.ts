@@ -1,6 +1,12 @@
 import dotenv from 'dotenv';
 
-dotenv.config();
+// Try to load .env file, but don't fail if it doesn't exist
+try {
+  dotenv.config();
+  console.log('Attempted to load .env file');
+} catch (error) {
+  console.log('env file not found');
+}
 
 const REQUIRED_ENV_VARS = [
   'PORT',
