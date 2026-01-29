@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 import User from '../models/User';
 
-import { getEnvVar } from '../../config/env';
+import { getEnvVar } from '../../config/env_test';
 
 export class UserService {
   private generateToken(id: string, email: string): string {

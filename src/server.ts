@@ -6,7 +6,7 @@ import authRoutes from './routes/authRouter';
 import itemRoutes from './routes/itemRouter';
 import cors from 'cors';
 import { NodeEnvs } from './common/constants/env';
-import { getEnvVar } from '../config/env';
+import { getEnvVar } from '../config/env_test';
 
 const app = express();
 

@@ -1,84 +1,35 @@
-import dotenv from 'dotenv';
+// config/env.ts - SIMPLIFIED
+console.log('🔧 Loading environment configuration...');
 
-// Try to load .env file, but don't fail if it doesn't exist
-try {
-  dotenv.config();
-  console.log('Attempted to load .env file');
-} catch (error) {
-  console.log('env file not found');
+// NO DOTENV - Railway provides env vars directly
+
+const REQUIRED_ENV_VARS = ['PORT', 'MONGODB_URI', 'JWT_SECRET', 'JWT_EXPIRE', 'NODE_ENV'] as const;
+
+// Check required variables
+for (const envVar of REQUIRED_ENV_VARS) {
+  if (!process.env[envVar]) {
+    console.error(`❌ Missing environment variable: ${envVar}`);
+    console.error('💡 Please set it in Railway Variables dashboard');
+    process.exit(1);
+  }
 }
 
-const REQUIRED_ENV_VARS = [
-  'PORT',
-  'MONGODB_URI',
-  'JWT_SECRET',
-  'JWT_EXPIRE',
-  'NODE_ENV'
-] as const;
-export const ENV: Record<string, string | number | boolean | undefined> = {
-  PORT: undefined,
-  NODE_ENV: undefined,
-  
-  MONGODB_URI: undefined,
-  
-  JWT_SECRET: undefined,
-  JWT_EXPIRE: undefined,
-  
-  IS_PRODUCTION: undefined,
-  IS_DEVELOPMENT: undefined,
-  IS_TEST: undefined,
-};
+// Export environment variables
+export const PORT = parseInt(process.env.PORT || '3000', 10);
+export const MONGODB_URI = process.env.MONGODB_URI as string;
+export const JWT_SECRET = process.env.JWT_SECRET as string;
+export const JWT_EXPIRE = process.env.JWT_EXPIRE || '7d';
+export const NODE_ENV = process.env.NODE_ENV || 'development';
+export const IS_PRODUCTION = NODE_ENV === 'production';
+export const IS_DEVELOPMENT = NODE_ENV === 'development';
 
-export const validateEnv = (): void => {
-  const missingVars: string[] = [];
-  
-  for (const envVar of REQUIRED_ENV_VARS) {
-    const value = process.env[envVar];
-    if (!value || value.trim() === '') {
-      missingVars.push(envVar);
-    }
-  }
-  
-  if (missingVars.length > 0) {
-    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
-  }
-  
-  for (const envVar of REQUIRED_ENV_VARS) {
-    const value = process.env[envVar];
-    if (value) {
-      if (envVar === 'PORT') {
-        ENV[envVar] = parseInt(value, 10);
-      } else {
-        ENV[envVar] = value;
-      }
-    }
-  }
-  
-  const nodeEnv = ENV.NODE_ENV as string;
-  ENV.IS_PRODUCTION = nodeEnv === 'production';
-  ENV.IS_DEVELOPMENT = nodeEnv === 'development';
-  ENV.IS_TEST = nodeEnv === 'test';
-};
 
+console.log(`✅ Environment loaded: ${NODE_ENV}`);
+console.log(`✅ MongoDB URI: ${MONGODB_URI ? 'Set' : 'Not set'}`);
 export const getEnvVar = (key: string): string | number | boolean => {
-  const value = ENV[key];
-  if (value === undefined) {
-    throw new Error(`Environment variable ${key} is not defined`);
-  }
-  return value;
+//   const value = ENV[key];
+//   if (value === undefined) {
+//     throw new Error(`Environment variable ${key} is not defined`);
+//   }
+  return key;
 };
-
-export const PORT = ENV.PORT as number | undefined;
-export const MONGODB_URI = ENV.MONGODB_URI as string | undefined;
-export const JWT_SECRET = ENV.JWT_SECRET as string | undefined;
-export const JWT_EXPIRE = ENV.JWT_EXPIRE as string | undefined;
-export const NODE_ENV = ENV.NODE_ENV as string | undefined;
-export const IS_PRODUCTION = ENV.IS_PRODUCTION as boolean | undefined;
-export const IS_DEVELOPMENT = ENV.IS_DEVELOPMENT as boolean | undefined;
-export const IS_TEST = ENV.IS_TEST as boolean | undefined;
-
-try {
-  validateEnv();
-} catch (error: any) {
-  process.exit(1);
-}
