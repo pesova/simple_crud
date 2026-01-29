@@ -1,12 +1,11 @@
 import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
-import logger from 'jet-logger';
 import morgan from 'morgan';
 import connectDB from '../config/database';
 import authRoutes from './routes/authRouter';
 import itemRoutes from './routes/itemRouter';
 import cors from 'cors';
-import EnvVars, { NodeEnvs } from './common/constants/env';
+import { NodeEnvs } from './common/constants/env';
 import { getEnvVar } from '../config/env';
 
 const app = express();
@@ -17,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-if (EnvVars.NodeEnv === NodeEnvs.DEV) {
+if (getEnvVar("NODE_ENV") === NodeEnvs.DEV) {
   app.use(morgan('dev'));
 }
 
