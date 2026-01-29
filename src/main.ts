@@ -1,5 +1,4 @@
 import server from './server';
-console.log(' Starting server...');
 
 /******************************************************************************
                                 Constants
@@ -15,7 +14,6 @@ const SERVER_START_MESSAGE =
 // Start the server
 server.listen(port, (err) => {
   if (!!err) {
-    console.error({err});
     console.error(err.message);
   } else {
     console.info(SERVER_START_MESSAGE);
