@@ -7,9 +7,9 @@ import {
   deleteItem
 } from '../controllers/itemController';
 import { authMiddleware } from '../middleware/auth';
-import { validate } from '@src/middleware/validators/validation';
-import { idValidator } from '@src/middleware/validators/customValidator';
-import { createItemValidator, updateItemValidator } from '@src/middleware/validators/itemValidator';
+import { validate } from '../middleware/validators/validation';
+import { idValidator } from '../middleware/validators/customValidator';
+import { createItemValidator, updateItemValidator } from '../middleware/validators/itemValidator';
 
 const router = express.Router();
 

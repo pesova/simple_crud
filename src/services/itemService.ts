@@ -1,4 +1,4 @@
-import Item from '@src/models/Item';
+import Item from '../models/Item';
 import mongoose from 'mongoose';
 
 export class ItemService {

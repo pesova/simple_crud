@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-import User from '@src/models/User';
+import User from '../models/User';
 
 import { getEnvVar } from '../../config/env';
 
