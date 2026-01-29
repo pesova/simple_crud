@@ -1,9 +1,3 @@
-import { isNonEmptyString, isString, isUnsignedInteger } from 'jet-validators';
-
-import { transformIsDate } from '@src/common/utils/validators';
-
-import { Entity } from './common/types';
-
 import mongoose, { Schema } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { IUser } from '../interfaces/types';
@@ -36,18 +30,7 @@ const UserSchema: Schema = new Schema({
   timestamps: true
 });
 
-// Encrypt password using bcrypt
-// UserSchema.pre('save', async function(next) {
-//   if (!this.isModified('password')) {
-//     next();
-//   }
-  
-//   const salt = await bcrypt.genSalt(10);
-//   this.password = await bcrypt.hash(this.password, salt);
-// });
-
-// Compare password method
-UserSchema.methods.comparePassword = async function(userPassword: string): Promise<boolean> {
+UserSchema.methods.verifyPassword = async function(userPassword: string): Promise<boolean> {
   return await bcrypt.compare(userPassword, this.password);
 };
 

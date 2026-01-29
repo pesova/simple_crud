@@ -1,64 +1,62 @@
-import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
-import { RouteError } from '@src/common/utils/route-errors';
-import { IUser } from '@src/models/User.model';
-import UserRepo from '@src/repos/UserRepo';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 
-/******************************************************************************
-                                Constants
-******************************************************************************/
+import User from '@src/models/User';
 
-const Errors = {
-  USER_NOT_FOUND: 'User not found',
-} as const;
+import { getEnvVar } from '../../config/env';
 
-/******************************************************************************
-                                Functions
-******************************************************************************/
-
-/**
- * Get all users.
- */
-function getAll(): Promise<IUser[]> {
-  return UserRepo.getAll();
-}
-
-/**
- * Add one user.
- */
-function addOne(user: IUser): Promise<void> {
-  return UserRepo.add(user);
-}
-
-/**
- * Update one user.
- */
-async function updateOne(user: IUser): Promise<void> {
-  const persists = await UserRepo.persists(user.id);
-  if (!persists) {
-    throw new RouteError(HttpStatusCodes.NOT_FOUND, Errors.USER_NOT_FOUND);
+export class UserService {
+  private generateToken(id: string, email: string): string {
+    return jwt.sign({ id, email }, getEnvVar('JWT_SECRET') as string, {
+      expiresIn: getEnvVar('JWT_EXPIRE') as jwt.SignOptions['expiresIn'],
+    });
   }
-  return UserRepo.update(user);
-}
 
-/**
- * Delete a user by their id.
- */
-async function deleteOne(id: number): Promise<void> {
-  const persists = await UserRepo.persists(id);
-  if (!persists) {
-    throw new RouteError(HttpStatusCodes.NOT_FOUND, Errors.USER_NOT_FOUND);
+  async createUser(name: string, email: string, password: string) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new Error('User already exists');
+    }
+
+    const hashedPassword = await this.hashPassword(password);
+    const user = await User.create({ 
+      name, 
+      email, 
+      password: hashedPassword 
+    });
+    const token = this.generateToken(user._id.toString(), user.email);
+
+    return { user, token };
   }
-  return UserRepo.delete(id);
+
+  async login(email: string, password: string) {
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user) {
+      throw new Error('Invalid credentials');
+    }
+
+    const isMatch = await user.verifyPassword(password);
+    if (!isMatch) {
+      throw new Error('Invalid credentials');
+    }
+
+    const token = this.generateToken(user._id.toString(), user.email);
+    const { password: _, ...userWithoutPassword } = user.toObject();
+
+    return { user: userWithoutPassword, token };
+  }
+
+  async getUserById(id: string) {
+    return await User.findById(id);
+  }
+
+  async getCurrentUser(id: string) {
+    return await this.getUserById(id);
+  }
+
+  private async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return await bcrypt.hash(password, salt);
+  }
 }
-
-/******************************************************************************
-                                Export default
-******************************************************************************/
-
-export default {
-  Errors,
-  getAll,
-  addOne,
-  updateOne,
-  delete: deleteOne,
-} as const;

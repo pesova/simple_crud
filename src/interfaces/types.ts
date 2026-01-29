@@ -24,6 +24,8 @@ export interface AuthRequest extends Request {
     id: string;
     email: string;
   };
+  headers: any,
+  params: any
 }
 
 export interface JwtPayload {

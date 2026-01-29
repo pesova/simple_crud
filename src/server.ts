@@ -2,69 +2,70 @@ import express, { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import logger from 'jet-logger';
 import morgan from 'morgan';
-import path from 'path';
-
-import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
-import Paths from '@src/common/constants/Paths';
-import { RouteError } from '@src/common/utils/route-errors';
-import BaseRouter from '@src/routes/apiRouter';
-
+import connectDB from '../config/database';
+import authRoutes from './routes/authRouter';
+import itemRoutes from './routes/itemRouter';
+import cors from 'cors';
 import EnvVars, { NodeEnvs } from './common/constants/env';
-
-/******************************************************************************
-                                Setup
-******************************************************************************/
+import { getEnvVar } from '../config/env';
 
 const app = express();
 
 // **** Middleware **** //
 
-// Basic middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Show routes called in console during development
 if (EnvVars.NodeEnv === NodeEnvs.DEV) {
   app.use(morgan('dev'));
 }
 
-// Security
-if (EnvVars.NodeEnv === NodeEnvs.PRODUCTION) {
-  // eslint-disable-next-line no-process-env
+connectDB();
+
+if (getEnvVar("NODE_ENV") === NodeEnvs.PRODUCTION) {
   if (!process.env.DISABLE_HELMET) {
-    app.use(helmet());
+    app.use(helmet({
+      contentSecurityPolicy: false,
+    }));
   }
 }
 
-// Add APIs, must be after middleware
-app.use(Paths._, BaseRouter);
+// routes
+app.use('/api/auth', authRoutes);
+app.use('/api/items', itemRoutes);
 
-// Add error handler
-app.use((err: Error, _: Request, res: Response, next: NextFunction) => {
-  if (EnvVars.NodeEnv !== NodeEnvs.TEST.valueOf()) {
-    logger.err(err, true);
-  }
-  let status: HttpStatusCodes = HttpStatusCodes.BAD_REQUEST;
-  if (err instanceof RouteError) {
-    status = err.status;
-    res.status(status).json({ error: err.message });
-  }
-  return next(err);
+// Health check route
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    timestamp: new Date().toISOString()
+  });
 });
 
-
-// Health check (optional but recommended)
-app.get('/health', (_req: Request, res: Response) => {
-  res.status(HttpStatusCodes.OK).json({ status: 'ok' });
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: 'ok',
+    message: 'CRUD API is running',
+    documentation: '/api/auth for authentication, /api/items for CRUD operations'
+  });
 });
 
-app.get('/', (_req: Request, res: Response) => {
-  res.status(HttpStatusCodes.OK).json({ status: 'ok' });
-})
-
-app.get('/users', (_req: Request, res: Response) => {
-  // return users
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.originalUrl} not found`,
+  });
+});
+// Global error handler
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {  
+  const statusCode = err.statusCode || 500;
   
-})
+  res.status(statusCode).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+  });
+});
 
 export default app;
